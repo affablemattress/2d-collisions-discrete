@@ -1,0 +1,5 @@
+# ninja log v5
+6	305	6796917901618992	CMakeFiles/2d-collisions-discrete.dir/circle.cpp.obj	3ff5408b4f0af595
+12	308	6796917901628970	CMakeFiles/2d-collisions-discrete.dir/V2.cpp.obj	4d8284e76b855f70
+0	709	6796917905638231	CMakeFiles/2d-collisions-discrete.dir/main.cpp.obj	768b47acbb894ddb
+710	1182	6796917910118628	2d-collisions-discrete.exe	b9bc652e6257097
