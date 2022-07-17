@@ -1,3 +1,0 @@
-C:/Dev/cpp/2d-collisions-discrete/out/build/x64-release/CMakeFiles/2d-collisions-discrete.dir
-C:/Dev/cpp/2d-collisions-discrete/out/build/x64-release/CMakeFiles/edit_cache.dir
-C:/Dev/cpp/2d-collisions-discrete/out/build/x64-release/CMakeFiles/rebuild_cache.dir
