@@ -25,18 +25,14 @@
 const int kBorderThickness = 5;
 const int kCircleMaxSpeed = 20;
 const int kCircleMaxMass = 10;
-const int kCircleMaxCount = 148;
+const int kCircleMaxCount = 200;
 
 std::vector<Circle*> AllCircles = {};
-float COR = 1;
-bool is = true;
 bool isPaused = false;
+float GUIe = 1;
 int GUISpeed = 1;
 int GUIMass = 1;
 int GUIColor = 0;
-
-std::string GUISpeedText = "";
-std::string GUIMassText = "";
 Color colorList[5] = {
     RED,
     BLUE,
@@ -44,6 +40,11 @@ Color colorList[5] = {
     ORANGE,
     PURPLE
 };
+
+std::string GUIeText = "";
+std::string GUISpeedText = "";
+std::string GUIMassText = "";
+
 
 void CheckBoundaryCollision(Circle* circle) {
     if (circle->position.x < -(UNIT_WIDTH / 2) + (kBorderThickness / UNIT_PER_PIXEL) + circle->radius) {
@@ -71,7 +72,7 @@ void CollisionResponse(Circle* first, Circle* second) {
     second->position = second->position - (V2::Normalized(first->position - second->position) * (deltaX / 2.f));
     //Dynamic Response
     V2 normal = V2::Normalized((second->position - first->position));
-    float impulse = V2::Dot((first->velocity - second->velocity), normal) * (COR + 1) * (first->mass * second->mass) / (first->mass + second->mass);
+    float impulse = V2::Dot((first->velocity - second->velocity), normal) * (GUIe + 1) * (first->mass * second->mass) / (first->mass + second->mass);
     first->velocity = first->velocity - normal * (impulse / first->mass);
     second->velocity = second->velocity + normal * (impulse / second->mass);
 }
@@ -135,6 +136,48 @@ bool AddRandomCircle() {
     return AddCircle(color, mass, speed);
 }
 
+void DrawInfo(int posX, int posY) {
+    std::string numberText = "Total number of particles: ";
+    numberText.append(std::to_string(AllCircles.size()));
+    DrawText(numberText.c_str(), posX, posY - 20, 10, GRAY);
+
+    std::string averageEnergyText = "Average kinetic energy of the particles: ";
+    float totalEnergy = 0.f;
+    float averageEnergy = 0.f;
+    if (!AllCircles.empty()) {
+        for (Circle* circle : AllCircles) {
+            totalEnergy += circle->mass * pow(circle->velocity.Length(), 2);
+        }
+        averageEnergy = totalEnergy / AllCircles.size();
+    }
+    averageEnergyText.append(std::to_string((int)averageEnergy));
+    DrawText(averageEnergyText.c_str(), posX, posY - 40, 10, GRAY);
+
+    int verticalOffset = 60;
+    for (int i = 10; i >= 1; i--) {
+        std::vector<Circle*> currentMass;
+        for (Circle* circle : AllCircles) {
+            if (circle->mass == i) {
+                currentMass.push_back(circle);
+            }
+        }
+        if (!currentMass.empty()) {
+            averageEnergyText = "Average kinetic energy of the particles with mass ";
+            averageEnergyText.append(std::to_string(i));
+            averageEnergyText.append(": ");
+            totalEnergy = 0.f;
+            averageEnergy = 0.f;
+            for (Circle* circle : currentMass) {
+                totalEnergy += circle->mass * pow(circle->velocity.Length(), 2);
+            }
+            averageEnergy = totalEnergy / currentMass.size();
+            averageEnergyText.append(std::to_string((int)averageEnergy));
+            DrawText(averageEnergyText.c_str(), posX, posY - verticalOffset, 10, GRAY);
+            verticalOffset += 20;
+        }
+    }
+}
+
 void DrawGUIBackground() {
     if (isPaused) {
         DrawText("PAUSED", WIDTH / 2 - 410, HEIGHT / 2 - 90, 200, LIGHTGRAY);
@@ -157,56 +200,60 @@ void DrawBorders() {
 }
 
 void DrawGUIForeground() {
-    GUIMass = GuiSlider(Rectangle{ 70, 30, 110, 15 }, "Mass  ", GUIMassText.c_str(), GUIMass, 1, kCircleMaxMass);
+    GUIMass = GuiSlider(Rectangle{ 60, 15, 110, 15 }, "Mass  ", GUIMassText.c_str(), GUIMass, 1, kCircleMaxMass);
     GUIMassText = std::to_string(GUIMass);
 
-    GUISpeed = GuiSlider(Rectangle{ 70, 50, 110, 15 }, "Speed  ", GUISpeedText.c_str(), GUISpeed, 0, kCircleMaxSpeed);
+    GUISpeed = GuiSlider(Rectangle{ 60, 35, 110, 15 }, "Speed  ", GUISpeedText.c_str(), GUISpeed, 0, kCircleMaxSpeed);
     GUISpeedText = std::to_string(GUISpeed);
 
-    DrawRectangle(70, 68, 19, 19, RED);
-    DrawRectangle(73, 71, 13, 13, WHITE);
-    if (GuiCheckBox(Rectangle{ 72, 70, 15, 15 }, NULL, GUIColor == 0)) GUIColor = 0;
-    DrawRectangle(93, 68, 19, 19, BLUE);
-    DrawRectangle(96, 71, 13, 13, WHITE);
-    if (GuiCheckBox(Rectangle{ 95, 70, 15, 15 }, NULL, GUIColor == 1)) GUIColor = 1;
-    DrawRectangle(116, 68, 19, 19, GREEN);
-    DrawRectangle(119, 71, 13, 13, WHITE);
-    if (GuiCheckBox(Rectangle{ 118, 70, 15, 15 }, NULL, GUIColor == 2)) GUIColor = 2;
-    DrawRectangle(138, 68, 19, 19, ORANGE);
-    DrawRectangle(141, 71, 13, 13, WHITE);
-    if (GuiCheckBox(Rectangle{ 140, 70, 15, 15 }, NULL, GUIColor == 3)) GUIColor = 3;
-    DrawRectangle(161, 68, 19, 19, PURPLE);
-    DrawRectangle(164, 71, 13, 13, WHITE);
-    if (GuiCheckBox(Rectangle{ 163, 70, 15, 15 }, NULL, GUIColor == 4)) GUIColor = 4;
-
-    if (GuiButton(Rectangle{ 70, 90, 110, 15 }, "Add Circle")) {
+    DrawRectangle(60, 53, 19, 19, RED);
+    DrawRectangle(63, 56, 13, 13, WHITE);
+    if (GuiCheckBox(Rectangle{ 62, 55, 15, 15 }, NULL, GUIColor == 0)) GUIColor = 0;
+    DrawRectangle(83, 53, 19, 19, BLUE);
+    DrawRectangle(86, 56, 13, 13, WHITE);
+    if (GuiCheckBox(Rectangle{ 85, 55, 15, 15 }, NULL, GUIColor == 1)) GUIColor = 1;
+    DrawRectangle(106, 53, 19, 19, GREEN);
+    DrawRectangle(109, 56, 13, 13, WHITE);
+    if (GuiCheckBox(Rectangle{ 108, 55, 15, 15 }, NULL, GUIColor == 2)) GUIColor = 2;
+    DrawRectangle(128, 53, 19, 19, ORANGE);
+    DrawRectangle(131, 56, 13, 13, WHITE);
+    if (GuiCheckBox(Rectangle{ 130, 55, 15, 15 }, NULL, GUIColor == 3)) GUIColor = 3;
+    DrawRectangle(151, 53, 19, 19, PURPLE);
+    DrawRectangle(154, 56, 13, 13, WHITE);
+    if (GuiCheckBox(Rectangle{ 153, 55, 15, 15 }, NULL, GUIColor == 4)) GUIColor = 4;
+    if (GuiButton(Rectangle{ 60, 75, 110, 15 }, "Add Circle")) {
         AddCircle(colorList[GUIColor], GUIMass, GUISpeed);
     }
 
-    if (GuiButton(Rectangle{ 70, 110, 110, 15 }, "Add 10 Circles")) {
+    if (GuiButton(Rectangle{ 60, 95, 110, 15 }, "Add 10 Circles")) {
         for (int i = 0; i < 10; i++) {
             AddCircle(colorList[GUIColor], GUIMass, GUISpeed);
         }
     }
 
-    if (GuiButton(Rectangle{ 70, 150, 110, 15}, "Add Rnd. Circle")) {
+    if (GuiButton(Rectangle{ 60, 135, 110, 15}, "Add Rnd. Circle")) {
         AddRandomCircle();
     }
 
-    if (GuiButton(Rectangle{ 70, 170, 110, 15 }, "Add 10 Rnd. Circles")) {
+    if (GuiButton(Rectangle{ 60, 155, 110, 15 }, "Add 10 Rnd. Circles")) {
         for (int i = 0; i < 10; i++) {
             AddRandomCircle();
         }
     }
 
-    if (GuiButton(Rectangle{ 70, 210, 110, 15 }, "Remove All Circles")) {
+    if (GuiButton(Rectangle{ 60, 195, 110, 15 }, "Remove All Circles")) {
         while (AllCircles.size() != 0) {
             free(AllCircles.back());
             AllCircles.pop_back();
         }
     }
 
-    GuiSlider(Rectangle{1200.f, 10.f, 100.f, 15.f}, "Press [SPACE] to pause.  ", "", 0, 0, 1);
+    DrawInfo(WIDTH - 315, HEIGHT - 5);
+
+    GUIe = GuiSlider(Rectangle{ 164 , HEIGHT - 30, 95, 15 }, "Coefficient of Restitution  ", GUIeText.c_str(), GUIe, 0, 1);
+    GUIeText = std::to_string(GUIe).substr(0, 3);
+
+    DrawText("Press [SPACE] to pause.", WIDTH / 2 - MeasureText("Press [SPACE] to pause.", 10) / 2, 15, 10, GRAY);
     if (IsKeyPressed(KEY_SPACE)) {
         isPaused ^= 1;
     }
@@ -218,15 +265,10 @@ int main(void) {
 
     while (!WindowShouldClose()) {
         if (!isPaused) {
-            if (is) {
-                CheckCollisionsInVector(AllCircles);
-                for (Circle* circle : AllCircles) {
-                    CheckBoundaryCollision(circle);
-                    MoveCircle(circle);
-                }
-            }
-            else {
-                //TODO: ADD A PRIORI SIMULATION O_O
+            CheckCollisionsInVector(AllCircles);
+            for (Circle* circle : AllCircles) {
+                CheckBoundaryCollision(circle);
+                MoveCircle(circle);
             }
         }
 

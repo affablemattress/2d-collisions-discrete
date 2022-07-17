@@ -1,11 +1,8 @@
 {
   "ExpandedNodes": [
     "",
-    "\\include",
-    "\\lib",
-    "\\out",
-    "\\out\\build"
+    "\\include"
   ],
-  "SelectedNode": "\\circle.h",
+  "SelectedNode": "\\V2.cpp",
   "PreviewInSolutionExplorer": false
 }
